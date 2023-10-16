@@ -1,0 +1,18 @@
+### get user
+GET  http://localhost:5000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYzN2RhZjI0OTdhOGRjMmY4YzAwYTViNSIsIm5hbWUiOiJhZG1pbiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwiaWF0IjoxNjY5MTgzNTE0fQ.K5mSzW0vzWc_VPeEPHbVuj4b41kVA_w4GKq6rpLZFq4
+
+### 
+POST  http://localhost:5000/auth/login
+Content-Type: application/json 
+
+{
+  "email": "admin@gmail.com",
+  "password": "admin"
+}
+
+###
+GET  http://localhost:5000/auth/token
+
+### logout
+DELETE  http://localhost:5000/auth/logout
