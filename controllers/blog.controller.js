@@ -93,7 +93,24 @@ module.exports = {
       });
     }
   },
-
+  getLatestBlogs: async (req, res) => {
+    try {
+      // Retrieve the latest 3 data
+      const blogs = await Blog.find({}, "-__v")
+        .sort({ createdAt: -1 }) // Sort in descending order based on createdAt field
+        .limit(3)
+        .populate("createdBy", "-__v -password -profile -gender -is_verified -birth_date -date_birth -role -email")
+        .exec();
+  
+      res.status(200).json(blogs);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  },
+  
   getBlogById: async (req, res) => {
     const { id } = req.params;
 

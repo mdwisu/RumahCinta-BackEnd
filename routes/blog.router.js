@@ -10,6 +10,7 @@ const {
   deleteBlogCommentById,
   updateCommentById,
   updateBlog,
+  getLatestBlogs,
 } = require('../controllers/blog.controller');
 const router = express.Router();
 const { verifyToken, authorizeRoles } = require('../middleware/authUser');
@@ -17,6 +18,7 @@ const multer = require('multer');
 const upload = multer({ dest: 'public/thumbnails' });
 
 router.get('/', getAllBlog);
+router.get('/latest', getLatestBlogs);
 router.get('/:id', getBlogById);
 router.post(
   '/',

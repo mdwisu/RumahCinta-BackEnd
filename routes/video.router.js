@@ -10,10 +10,12 @@ const {
   getAllCommentByVideo,
   addComment,
   deleteComment,
+  getLatestVideo,
 } = require("../controllers/video.controller");
 const { verifyToken, authorizeRoles } = require("../middleware/authUser");
 
 router.get("/", getAllVideo);
+router.get("/latest", getLatestVideo);
 router.get("/:id", getVideoById);
 router.post("/", verifyToken, authorizeRoles(["admin"]), addVideo);
 router.patch("/:id", verifyToken, authorizeRoles(["admin"]), updateVideoById);

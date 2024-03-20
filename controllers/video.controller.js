@@ -98,7 +98,20 @@ module.exports = {
       res.status(500).json({ message: error.message });
     }
   },
+  getLatestVideo: async (req, res) => {
+    try {
+        const latestVideos = await Video.find()
+            .sort({ createdAt: -1 }) // Mengurutkan berdasarkan createdAt secara descending (terbaru ke terlama)
+            .limit(4) // Membatasi jumlah hasil menjadi 4
+            .populate("createdBy", "-_id -email -password -role -isVerified -__v")
+            .select("-__v")
+            .exec();
 
+        res.json(latestVideos);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+},
   getVideoById: async (req, res) => {
     try {
       const { id } = req.params;
