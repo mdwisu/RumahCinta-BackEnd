@@ -9,6 +9,7 @@ const faqRouter = require("./faq.route");
 const konsulRouter = require("./konsul.router");
 const paymentRouter = require("./payment.router");
 const psikologRouter = require("./psikolog.router");
+const historyRouter = require("./histories.router");
 
 router.get("/", (req, res) => {
   res.send("<h1></h1>Welcome To Mental Hack API</h1>");
@@ -22,5 +23,6 @@ router.use("/faq", faqRouter);
 router.use("/konsul", konsulRouter);
 router.use("/payment", paymentRouter);
 router.use("/psikolog", psikologRouter);
+router.use("/histories", historyRouter);
 
 module.exports = router;
