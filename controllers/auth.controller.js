@@ -264,4 +264,20 @@ module.exports = {
       res.status(500).json({ message: "An internal server error occurred" });
     }
   },
+  validateToken: async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1]; // Ambil token dari header Authorization
+
+    if (!token) {
+      return res.status(401).json({ message: "Token tidak disediakan" });
+    }
+
+    // Verifikasi token menggunakan secret key
+    jwt.verify(token, configAuth.jwt_secret, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: "Token tidak valid" });
+      }
+      // Token valid, kirim respon berhasil
+      return res.status(200).json({ message: "Token valid", decoded });
+    });
+  },
 };
