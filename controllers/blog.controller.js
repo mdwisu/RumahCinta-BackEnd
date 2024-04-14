@@ -226,6 +226,12 @@ module.exports = {
         // Mengubah tag <img> dengan atribut src Base64 menjadi tautan gambar yang valid
         const $ = cheerio.load(content);
 
+        // Membuat folder "images" jika belum ada
+        const imagesFolderPath = path.join(__dirname, "..", "public", "images");
+        if (!fs.existsSync(imagesFolderPath)) {
+          fs.mkdirSync(imagesFolderPath, { recursive: true });
+        }
+
         $("img").each((index, element) => {
           const imageSrc = $(element).attr("src");
 
