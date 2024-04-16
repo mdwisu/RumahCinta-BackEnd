@@ -10,8 +10,11 @@ module.exports = {
     }
   },
   getHistoriesByUserId: async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Anda belum login" });
+    }
     try {
-      const histories = await History.find({ userId: req.user._id });
+      const histories = await History.find({ patientUserId: req.user._id });
       res.json(histories);
     } catch (err) {
       res.status(500).json({ message: err.message });
@@ -26,12 +29,14 @@ module.exports = {
     }
   },
   addHistory: async (req, res) => {
+    const consultationDate = req.body.consultationDate ? new Date(req.body.consultationDate) : new Date();
     const newHistory = new History({
       createdBy: req.user._id,
-      consultationDate: req.body.consultationDate,
+      patientUserId: req.body.patientUserId,
       notes: req.body.notes,
       diagnosis: req.body.diagnosis,
       prescription: req.body.prescription,
+      consultationDate: consultationDate,
       personalData: req.body.personalData,
       privateNotes: req.body.privateNotes,
     });

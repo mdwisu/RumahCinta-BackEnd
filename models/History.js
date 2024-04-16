@@ -8,6 +8,11 @@ const HistorySchema = new Schema(
       ref: "User",
       required: true,
     },
+    patientUserId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    },
     notes: {
       type: String,
       required: true,
@@ -18,6 +23,9 @@ const HistorySchema = new Schema(
     },
     prescription: {
       type: String,
+    },
+    consultationDate: {
+      type: Date,
     },
     personalData: {
       type: String,
