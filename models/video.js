@@ -6,7 +6,7 @@ const videoSchema = new Schema({
     type: String,
     require: true,
   },
-  videoLink: {
+  videoId: {
     type: String,
     require: true,
   },

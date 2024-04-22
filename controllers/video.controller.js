@@ -3,6 +3,8 @@ const Video = require("../models/video");
 const cheerio = require("cheerio");
 const path = require("path");
 const fs = require("fs");
+const YouTubeVideoId = require("youtube-video-id").default;
+const youtubeUrl = require("youtube-url");
 
 // Fungsi untuk mendapatkan daftar gambar dari konten blog
 const getImagesFromContent = (content) => {
@@ -100,18 +102,18 @@ module.exports = {
   },
   getLatestVideo: async (req, res) => {
     try {
-        const latestVideos = await Video.find()
-            .sort({ createdAt: -1 }) // Mengurutkan berdasarkan createdAt secara descending (terbaru ke terlama)
-            .limit(4) // Membatasi jumlah hasil menjadi 4
-            .populate("createdBy", "-_id -email -password -role -isVerified -__v")
-            .select("-__v")
-            .exec();
+      const latestVideos = await Video.find()
+        .sort({ createdAt: -1 }) // Mengurutkan berdasarkan createdAt secara descending (terbaru ke terlama)
+        .limit(4) // Membatasi jumlah hasil menjadi 4
+        .populate("createdBy", "-_id -email -password -role -isVerified -__v")
+        .select("-__v")
+        .exec();
 
-        res.json(latestVideos);
+      res.json(latestVideos);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
-},
+  },
   getVideoById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -127,21 +129,21 @@ module.exports = {
   },
 
   addVideo: (req, res) => {
-    const { title, videoLink, description, author, content } = req.body;
+    const { title, videoLink, description, author } = req.body;
     const userId = req.user._id;
 
-    if (videoLink && !videoLink.startsWith("https://youtu.be/")) {
+    if (videoLink && !youtubeUrl.valid(videoLink)) {
       res.status(400).json({ message: "Invalid YouTube video link" });
-      videoLink = "Invalid YouTube video link";
+      return;
     }
 
-    const newVideoLink = videoLink.split("/").pop();
+    const videoId = YouTubeVideoId(videoLink);
+
     const video = new Video({
       title,
-      videoLink: newVideoLink,
+      videoId,
       description,
       author,
-      content,
       createdBy: userId,
     });
 
@@ -153,57 +155,29 @@ module.exports = {
   },
 
   updateVideoById: async (req, res) => {
-    const { title, videoLink, description, author, content } = req.body;
+    const { title, videoLink, description, author } = req.body;
     const videoId = req.params.id;
     const updatedBy = req.user._id;
 
+    if (videoLink && !youtubeUrl.valid(videoLink)) {
+      res.status(400).json({ message: "Invalid YouTube video link" });
+      return;
+    }
+
+    const newVideoId = YouTubeVideoId(videoLink);
+
     let updatedVideo = {
       title,
-      videoLink,
+      videoId: newVideoId,
       description,
       author,
-      content,
       updatedBy,
     };
-
-    if (description) {
-      const wordCount = description.trim().split(" ").length;
-      if (wordCount > 50) {
-        return res.status(400).json({ message: "Deskripsi melebihi batas maksimum kata." });
-      }
-      updatedVideo.description = description;
-    }
-
-    if (content) {
-      const $ = cheerio.load(content);
-
-      $("img").each((index, element) => {
-        const imageSrc = $(element).attr("src");
-
-        if (imageSrc.startsWith("data:image")) {
-          const base64Data = imageSrc.split(";base64,").pop();
-          const imageExtension = imageSrc.split("/")[1].split(";")[0];
-          const imageFileName = `image_${Date.now()}_${getNextImageCounter()}.${imageExtension}`;
-          const imagePath = path.join(__dirname, "..", "public", "images", imageFileName);
-
-          fs.writeFileSync(imagePath, base64Data, { encoding: "base64" });
-
-          $(element).attr("src", `/images/${imageFileName}`);
-        }
-      });
-
-      updatedVideo.content = $.html();
-    }
 
     try {
       const video = await Video.findById(videoId);
       if (!video) {
         return res.status(404).json({ message: "Video not found." });
-      }
-
-      const originalContent = video.content;
-      if (content) {
-        checkAndDeleteMissingImages(originalContent, updatedVideo.content);
       }
 
       await Video.findByIdAndUpdate(videoId, updatedVideo);

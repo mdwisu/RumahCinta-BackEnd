@@ -1,17 +1,21 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
 
-const HistorySchema = new Schema(
+const historySchema = new mongoose.Schema(
   {
     createdBy: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     patientUserId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    psikologId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     notes: {
       type: String,
@@ -21,20 +25,15 @@ const HistorySchema = new Schema(
       type: String,
       required: true,
     },
-    prescription: {
-      type: String,
-    },
+    prescription: String,
     consultationDate: {
       type: Date,
+      required: true,
     },
-    personalData: {
-      type: String,
-    },
-    privateNotes: {
-      type: String,
-    },
+    personalData: String,
+    privateNotes: String,
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("History", HistorySchema);
+module.exports = mongoose.model("History", historySchema);
