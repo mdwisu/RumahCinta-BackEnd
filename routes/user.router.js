@@ -8,6 +8,7 @@ const {
   updateUser,
   deleteUser,
   updateProfilePicture,
+  getUsersByNameOrEmail,
 } = require("../controllers/user.controller");
 const { verifyToken, authorizeRoles } = require("../middleware/authUser");
 
@@ -18,5 +19,6 @@ router.post("/", addUser);
 router.patch("/updateprofilepicture", verifyToken, updateProfilePicture);
 router.patch("/:id", verifyToken, authorizeRoles(["admin"]), updateUser);
 router.delete("/:id", verifyToken, authorizeRoles(["admin"]), deleteUser);
+router.get("/search/:query", verifyToken, authorizeRoles(["admin"]), getUsersByNameOrEmail);
 
 module.exports = router;

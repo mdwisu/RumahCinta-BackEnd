@@ -40,8 +40,7 @@ module.exports = {
     const saltRounds = 10;
     const hash = bcrypt.hashSync(data.password, saltRounds);
     data.password = hash;
-    const profile_url = `${req.protocol}://${req.get("host")}/images/default.jpg`;
-    data.profile_url = profile_url;
+    data.profile = `profile/default-user.jpg`;
     const user = new User(data);
     try {
       const insertedUser = await user.save();
@@ -112,5 +111,21 @@ module.exports = {
         res.status(400).json({ message: error.message });
       }
     });
+  },
+  getUsersByNameOrEmail: async (req, res) => {
+    const { query } = req.params;
+    try {
+      const users = await User.find({
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
+        ],
+        role: "user",
+      }).select("name email");
+      res.status(200).json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   },
 };
