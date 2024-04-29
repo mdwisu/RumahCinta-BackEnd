@@ -5,7 +5,7 @@ module.exports = {
     try {
       const histories = await History.find()
         .populate("createdBy", "name")
-        .populate("patientUserId", "name")
+        .populate("patientUserId", "name email")
         .populate("psikologId", "name");
       res.json(histories);
     } catch (err) {
