@@ -2,6 +2,7 @@ const Blog = require("../models/blog");
 const cheerio = require("cheerio");
 const path = require("path");
 const fs = require("fs");
+const fsPromises = require("fs").promises;
 const upload = require("../middleware/multerConfig");
 
 // Fungsi untuk mendapatkan daftar gambar dari konten blog
@@ -9,19 +10,7 @@ const getImagesFromContent = (content) => {
   const $ = cheerio.load(content);
   const images = [];
 
-  $('img[src^="/images/"]').each((index, element) => {
-    const imageSrc = $(element).attr("src");
-    images.push(imageSrc);
-  });
-
-  return images;
-};
-// Fungsi untuk mendapatkan daftar gambar dari konten blog
-const getImagesFromUpdatedContent = (content) => {
-  const $ = cheerio.load(content);
-  const images = [];
-
-  $('img[src^="http://localhost:5000/images/"]').each((index, element) => {
+  $('img[src^="/images/"], img[src^="http://localhost:5000/images/"]').each((index, element) => {
     const imageSrc = $(element).attr("src");
     images.push(imageSrc);
   });
@@ -30,39 +19,24 @@ const getImagesFromUpdatedContent = (content) => {
 };
 
 // Fungsi untuk menghapus gambar dari server
-const deleteImages = (images) => {
-  images.forEach((image) => {
+const deleteImages = async (images) => {
+  for (const image of images) {
     const imagePath = path.join(__dirname, "..", "public", image);
-    if (fs.existsSync(imagePath)) {
-      // Hapus gambar hanya jika file gambar masih ada
-      fs.unlinkSync(imagePath);
+    try {
+      await fsPromises.unlink(imagePath);
+    } catch (error) {
+      console.log(`Error deleting image: ${imagePath}`);
     }
-  });
+  }
 };
 
-const checkAndDeleteMissingImages = (originalContent, updatedContent) => {
-  const $ = cheerio.load(updatedContent);
+const checkAndDeleteMissingImages = async (originalContent, updatedContent) => {
   const originalImages = getImagesFromContent(originalContent);
-  const updatedImages = getImagesFromUpdatedContent(updatedContent).map((image) =>
-    image.replace("http://localhost:5000", "")
-  );
+  const updatedImages = getImagesFromContent(updatedContent);
+  
+  const missingImages = originalImages.filter((image) => !updatedImages.includes(image));
 
-  const missingImages = [];
-
-  originalImages.forEach((image) => {
-    if (!updatedImages.includes(image)) {
-      // The image is missing in the updated content
-      missingImages.push(image);
-    }
-  });
-
-  // Delete the missing images
-  missingImages.forEach((image) => {
-    const imagePath = path.join(__dirname, "..", "public", image);
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
-  });
+  await deleteImages(missingImages);
 };
 
 let imageCounter = 0;
@@ -101,7 +75,7 @@ module.exports = {
         .limit(3)
         .populate("createdBy", "-__v -password -profile -gender -is_verified -birth_date -date_birth -role -email")
         .exec();
-  
+
       res.status(200).json(blogs);
     } catch (error) {
       console.log(error);
@@ -110,7 +84,7 @@ module.exports = {
       });
     }
   },
-  
+
   getBlogById: async (req, res) => {
     const { id } = req.params;
 
@@ -247,6 +221,10 @@ module.exports = {
 
             // Mengubah atribut src menjadi tautan gambar yang valid
             $(element).attr("src", `/images/${imageFileName}`);
+          } else if (imageSrc.startsWith("http://localhost:5000/images/")) {
+            // Jika gambar sudah ada, pertahankan tautan gambar
+            const imageFileName = path.basename(imageSrc);
+            $(element).attr("src", `/images/${imageFileName}`);
           }
         });
         updatedBlog.content = $.html();
@@ -255,13 +233,6 @@ module.exports = {
       // Get the thumbnail image file
       const thumbnailFile = req.file;
 
-      // Set the thumbnail image path in the blog data
-      let thumbnailImagePath = "";
-      if (thumbnailFile) {
-        thumbnailImagePath = `/thumbnails/${thumbnailFile.filename}`;
-        updatedBlog.thumbnail = thumbnailImagePath;
-      }
-
       try {
         const blog = await Blog.findById(blogId);
         if (!blog) {
@@ -269,21 +240,24 @@ module.exports = {
         }
 
         // Delete the existing thumbnail image if the new thumbnail is uploaded and the old thumbnail exists
-        if (thumbnailFile && blog.thumbnail) {
-          const thumbnailPath = path.join(__dirname, "..", "public", blog.thumbnail.replace("/", ""));
-
-          // Check if the thumbnail file exists before trying to delete it
-          if (fs.existsSync(thumbnailPath)) {
-            fs.unlinkSync(thumbnailPath);
-          } else {
-            console.log("Thumbnail file does not exist. Skipping deletion.");
+        if (thumbnailFile) {
+          if (blog.thumbnail) {
+            const thumbnailPath = path.join(__dirname, "..", "public", blog.thumbnail.replace("/", ""));
+            try {
+              await fsPromises.unlink(thumbnailPath);
+            } catch (error) {
+              console.log("Thumbnail file does not exist. Skipping deletion.");
+            }
           }
+
+          // Set the new thumbnail image path in the blog data
+          updatedBlog.thumbnail = `/thumbnails/${thumbnailFile.filename}`;
         }
 
         // Check and delete missing images
         const originalContent = blog.content;
-        if (content) {
-          checkAndDeleteMissingImages(originalContent, updatedBlog.content);
+        if (updatedBlog.content) {
+          await checkAndDeleteMissingImages(originalContent, updatedBlog.content);
         }
 
         // Mengupdate blog dengan data yang baru
