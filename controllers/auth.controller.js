@@ -4,8 +4,8 @@ const Psikolog = require("../models/psikolog");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
-const configAuth = require("../config/ConfigAuth");
-const { sendVerificationEmail } = require("../middleware/sendVerifycationEmail");
+const configAuth = require("../config/configAuth");
+const { sendVerificationEmail, sendPasswordEmail } = require("../middleware/sendVerifycationEmail");
 const { decryptID } = require("../helpers/encryptedID");
 
 // Fungsi untuk menghapus file
@@ -279,5 +279,38 @@ module.exports = {
       // Token valid, kirim respon berhasil
       return res.status(200).json({ message: "Token valid", decoded });
     });
+  },
+  registerWithAutoPassword: async (req, res) => {
+    const { name, email } = req.body;
+    try {
+      // generate password
+      const password = Math.random().toString(36).slice(-8);
+      // hash password
+      // Hash password
+      const saltRounds = 10;
+      const hash = bcrypt.hashSync(password, saltRounds);
+      // create new user
+      const user = new User({
+        name,
+        email,
+        password: hash,
+        role: "user",
+        is_verified: true,
+        profile: "profile/default-user.jpg",
+      });
+
+      const insertedUser = await user.save();
+      // kirim email dengan password ke pengguna
+      await sendPasswordEmail(email, password);
+
+      res.status(201).json({ message: "Registration is successful, password has been sent to the email" });
+    } catch (error) {
+      console.log(error);
+      if (error.code === 11000) {
+        res.status(400).json({ message: "Email already registered" });
+      } else {
+        res.status(400).json({ message: error.message });
+      }
+    }
   },
 };

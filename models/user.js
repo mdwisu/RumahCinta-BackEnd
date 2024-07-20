@@ -13,14 +13,14 @@ const userSchema = new Schema({
   },
   gender: {
     type: String,
-    required: [true, "Gender is required"],
+    // required: [true, "Gender is required"],
   },
   place_birth: {
     type: String,
   },
   date_birth: {
     type: Date,
-    required: [true, "Date Of Birth is required"],
+    // required: [true, "Date Of Birth is required"],
   },
   email: {
     type: String,

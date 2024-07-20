@@ -7,6 +7,7 @@ const {
   registerPsikolog,
   statusPsikolog,
   validateToken,
+  registerWithAutoPassword,
 } = require("../controllers/auth.controller");
 const upload = require("../middleware/multerConfig");
 const { verifyToken, authorizeRoles } = require("../middleware/authUser");
@@ -33,6 +34,7 @@ router.post(
   ]),
   register
 );
+router.post("/register-auto", registerWithAutoPassword);
 router.post("/login", Login);
 router.get("/verify/:id", verify);
 router.post("/resendverify", resendVerification);

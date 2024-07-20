@@ -1,5 +1,5 @@
-const ConfigAuth = require("../config/ConfigAuth");
-const Auth = require("../config/ConfigAuth");
+const ConfigAuth = require("../config/configAuth");
+const Auth = require("../config/configAuth");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
