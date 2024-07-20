@@ -281,7 +281,7 @@ module.exports = {
     });
   },
   registerWithAutoPassword: async (req, res) => {
-    const { name, email } = req.body;
+    const { name, gender, place_birth, date_birth, email } = req.body;
     try {
       // generate password
       const password = Math.random().toString(36).slice(-8);
@@ -292,9 +292,12 @@ module.exports = {
       // create new user
       const user = new User({
         name,
+        role: "user",
+        gender,
+        place_birth,
+        date_birth,
         email,
         password: hash,
-        role: "user",
         is_verified: true,
         profile: "profile/default-user.jpg",
       });
