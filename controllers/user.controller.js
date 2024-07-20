@@ -2,6 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
+const History = require("../models/History");
 
 module.exports = {
   getAllUser: async (req, res) => {
@@ -70,7 +71,9 @@ module.exports = {
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
-      } // Check if profile_url exists and is not "default.jpg"
+      }
+
+      // Check if profile_url exists and is not "default.jpg"
       if (user.profile_url) {
         const img = user.profile_url.split("/").pop();
         if (img !== "default.jpg") {
@@ -78,6 +81,9 @@ module.exports = {
           fs.unlinkSync(filepath);
         }
       }
+
+      // Delete related histories
+      await History.deleteMany({ patientUserId: req.params.id });
 
       // Delete user in db
       const deletedUser = await User.deleteOne({ _id: req.params.id });
@@ -116,10 +122,7 @@ module.exports = {
     const { query } = req.params;
     try {
       const users = await User.find({
-        $or: [
-          { name: { $regex: query, $options: "i" } },
-          { email: { $regex: query, $options: "i" } },
-        ],
+        $or: [{ name: { $regex: query, $options: "i" } }, { email: { $regex: query, $options: "i" } }],
         role: "user",
       }).select("name email");
       res.status(200).json(users);
