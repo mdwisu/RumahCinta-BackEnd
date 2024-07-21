@@ -1,5 +1,5 @@
+const path = require("path");
 const configAuth = require(path.join(__dirname, "../config/configAuth"));
-
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
