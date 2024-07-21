@@ -10,11 +10,11 @@ const {
 const router = express.Router();
 const { verifyToken, authorizeRoles } = require("../middleware/authUser");
 
-router.get("/", getHistories);
+router.get("/", verifyToken, authorizeRoles(["admin"]), getHistories);
 router.get("/user", verifyToken, authorizeRoles(["user", "admin"]), getHistoriesByUserId);
 router.get("/:id", getHistoryById);
 router.post("/", verifyToken, authorizeRoles(["admin"]), addHistory);
-router.patch("/:id", updateHistory);
-router.delete("/:id", deleteHistory);
+router.patch("/:id", verifyToken, authorizeRoles(["admin"]), updateHistory);
+router.delete("/:id", verifyToken, authorizeRoles(["admin"]), deleteHistory);
 
 module.exports = router;

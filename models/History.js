@@ -25,9 +25,16 @@ const historySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    prescription: String,
+    treatment: {
+      type: String,
+      required: true,
+    },
     consultationDate: {
       type: Date,
+      required: true,
+    },
+    consultationTime: {
+      type: String,
       required: true,
     },
     personalData: String,

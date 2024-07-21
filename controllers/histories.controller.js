@@ -47,8 +47,9 @@ module.exports = {
       psikologId: req.user._id,
       notes: req.body.notes,
       diagnosis: req.body.diagnosis,
-      prescription: req.body.prescription,
+      treatment: req.body.treatment,
       consultationDate: consultationDate,
+      consultationTime: req.body.consultationTime,
       personalData: req.body.personalData,
       privateNotes: req.body.privateNotes,
     });
