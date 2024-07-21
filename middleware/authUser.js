@@ -1,6 +1,4 @@
-const ConfigAuth = require("../config/configAuth.js");
-const Auth = require("../config/configAuth.js");
-const User = require("../models/user");
+const configAuth = require("../config/configAuth");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -15,7 +13,7 @@ module.exports = {
       return res.status(401).json({ message: "Mohon login ke akun anda!" });
     }
     // verify token
-    jwt.verify(token, ConfigAuth.jwt_secret, (err, decoded) => {
+    jwt.verify(token, configAuth.jwt_secret, (err, decoded) => {
       if (err) return res.sendStatus(403);
       next();
     });
@@ -29,7 +27,7 @@ module.exports = {
         return res.status(401).json({ message: "No token provided" });
       }
       try {
-        const decoded = jwt.verify(token, Auth.jwt_secret);
+        const decoded = jwt.verify(token, configAuth.jwt_secret);
         const { role } = decoded;
         if (!roles.includes(role)) {
           return res.status(403).json({ message: "Unauthorized" });
