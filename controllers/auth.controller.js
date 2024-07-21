@@ -4,9 +4,9 @@ const Psikolog = require("../models/psikolog");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
-const configAuth = require("../config/configAuth");
 const { sendVerificationEmail, sendPasswordEmail } = require("../middleware/sendVerifycationEmail");
 const { decryptID } = require("../helpers/encryptedID");
+const Auth = require("../config/Auth");
 
 // Fungsi untuk menghapus file
 function deleteFilesIfExists(files) {
@@ -213,7 +213,7 @@ module.exports = {
           is_verified: user.is_verified,
           psikologStatus: psikolog ? psikolog.status : null,
         },
-        configAuth.jwt_secret,
+        Auth.jwt_secret,
         { expiresIn: "1d" }
       );
 
@@ -272,7 +272,7 @@ module.exports = {
     }
 
     // Verifikasi token menggunakan secret key
-    jwt.verify(token, configAuth.jwt_secret, (err, decoded) => {
+    jwt.verify(token, Auth.jwt_secret, (err, decoded) => {
       if (err) {
         return res.status(403).json({ message: "Token tidak valid" });
       }

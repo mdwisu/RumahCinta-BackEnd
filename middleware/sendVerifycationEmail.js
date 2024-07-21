@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const config = require("../config");
 const { encryptID } = require("../helpers/encryptedID");
-const configAuth = require("../config/configAuth");
+const Auth = require("../config/Auth");
 
 const sendVerificationEmail = (email, userId) => {
   // create verify
@@ -11,12 +11,12 @@ const sendVerificationEmail = (email, userId) => {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: configAuth.email,
-      pass: configAuth.password,
+      user: Auth.email,
+      pass: Auth.password,
     },
   });
   let mailOptions = {
-    from: configAuth.email,
+    from: Auth.email,
     to: email,
     subject: "Verify your email address",
     html: `Please click this link to verify your email: <a href="${config.url}/auth/verify/${encryptedID}">${config.url}/verify/${encryptedID}</a> <br/>jika tidak bisa di klik mohon untuk mengcopy link dan buka di browser anda`,
@@ -38,13 +38,13 @@ const sendPasswordEmail = async (email, password) => {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: configAuth.email,
-      pass: configAuth.password,
+      user: Auth.email,
+      pass: Auth.password,
     },
   });
 
   let mailOptions = {
-    from: configAuth.email,
+    from: Auth.email,
     to: email,
     subject: "Your Password",
     html: `Silakan Login Di Website Rumah cinta dengan email anda dan password, password anda: <strong>${password}</strong>`,
