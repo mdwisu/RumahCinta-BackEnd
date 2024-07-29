@@ -158,30 +158,29 @@ module.exports = {
     const { title, videoLink, description, author } = req.body;
     const videoId = req.params.id;
     const updatedBy = req.user._id;
-
-    if (videoLink && !youtubeUrl.valid(videoLink)) {
-      res.status(400).json({ message: "Invalid YouTube video link" });
-      return;
-    }
-
-    const newVideoId = YouTubeVideoId(videoLink);
-
+  
+    // Buat objek updatedVideo tanpa videoId
     let updatedVideo = {
       title,
-      videoId: newVideoId,
       description,
       author,
       updatedBy,
     };
-
+  
+    // Jika videoLink dikirim, tambahkan videoId ke updatedVideo
+    if (videoLink) {
+      const newVideoId = YouTubeVideoId(videoLink);
+      updatedVideo.videoId = newVideoId;
+    }
+  
     try {
       const video = await Video.findById(videoId);
       if (!video) {
         return res.status(404).json({ message: "Video not found." });
       }
-
+  
       await Video.findByIdAndUpdate(videoId, updatedVideo);
-
+  
       res.status(200).json({ message: "Video updated successfully." });
     } catch (error) {
       console.log(error);

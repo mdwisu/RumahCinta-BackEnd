@@ -4,24 +4,23 @@ const { Schema } = mongoose;
 const blogSchema = new Schema({
   title: {
     type: String,
-    require: true,
+    required: [true, "Title is required"],
   },
   description: {
     type: String,
-    require: true,
+    required: [true, "Description is required"],
   },
   author: {
     type: String,
-    require: true,
+    required: [true, "Author is required"],
   },
   content: {
     type: String,
-    require: true,
+    required: [true, "Content is required"],
   },
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: "User",
-    require: true,
   },
   thumbnail: {
     type: String,
