@@ -6,12 +6,18 @@ const {
   updateHistory,
   deleteHistory,
   getHistoriesByUserId,
+  getSummaryReport,
+  getPsychologistPerformanceReport,
+  getTrendsReport,
 } = require("../controllers/histories.controller");
 const router = express.Router();
 const { verifyToken, authorizeRoles } = require("../middleware/authUser");
 
 router.get("/", verifyToken, authorizeRoles(["admin"]), getHistories);
 router.get("/user", verifyToken, authorizeRoles(["user", "admin"]), getHistoriesByUserId);
+router.get("/summary-report", verifyToken, authorizeRoles(["admin", "owner"]), getSummaryReport);
+router.get("/performance-psychologist", verifyToken, authorizeRoles(["admin", "owner"]), getPsychologistPerformanceReport);
+router.get("/trends-report", verifyToken, authorizeRoles(["admin", "owner"]), getTrendsReport);
 router.get("/:id", getHistoryById);
 router.post("/", verifyToken, authorizeRoles(["admin"]), addHistory);
 router.patch("/:id", verifyToken, authorizeRoles(["admin"]), updateHistory);
