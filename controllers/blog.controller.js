@@ -33,7 +33,7 @@ const deleteImages = async (images) => {
 const checkAndDeleteMissingImages = async (originalContent, updatedContent) => {
   const originalImages = getImagesFromContent(originalContent);
   const updatedImages = getImagesFromContent(updatedContent);
-  
+
   const missingImages = originalImages.filter((image) => !updatedImages.includes(image));
 
   await deleteImages(missingImages);
@@ -312,6 +312,59 @@ module.exports = {
         message: "Terjadi kesalahan saat menghapus blog.",
         error: error.message,
       });
+    }
+  },
+  getBlogSummary: async (req, res) => {
+    try {
+      const blogCount = await Blog.countDocuments();
+      const authorCount = await Blog.distinct("author").countDocuments();
+
+      res.json({
+        blogCount,
+        authorCount,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getTopBlogAuthors: async (req, res) => {
+    try {
+      const topAuthors = await Blog.aggregate([
+        { $group: { _id: "$author", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]);
+
+      res.json(topAuthors);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getBlogTrends: async (req, res) => {
+    try {
+      const trends = await Blog.aggregate([
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+        { $limit: 12 },
+      ]);
+
+      res.json(trends);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getRecentBlogs: async (req, res) => {
+    try {
+      const recentBlogs = await Blog.find().sort({ createdAt: -1 }).limit(5).select("title author createdAt");
+
+      res.json(recentBlogs);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   },
 };

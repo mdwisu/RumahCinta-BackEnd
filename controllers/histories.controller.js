@@ -131,7 +131,7 @@ module.exports = {
       }
 
       const totalConsultations = await History.countDocuments(query);
-      const uniquePatients = await History.distinct("patientUserId", query).countDocuments();
+      const uniquePatients = (await History.distinct("patientUserId", query)).length;
       const consultationsPerPsychologist = await History.aggregate([
         { $match: query },
         { $group: { _id: "$psikologId", count: { $sum: 1 } } },
@@ -263,6 +263,40 @@ module.exports = {
       ]);
 
       res.json(trends);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
+  getPatientReport: async (req, res) => {
+    try {
+      const topPatients = await History.aggregate([
+        {
+          $group: {
+            _id: "$patientUserId",
+            consultationCount: { $sum: 1 },
+          },
+        },
+        { $sort: { consultationCount: -1 } },
+        { $limit: 10 },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "_id",
+            as: "patientInfo",
+          },
+        },
+        { $unwind: "$patientInfo" },
+        {
+          $project: {
+            _id: 1,
+            name: "$patientInfo.name",
+            consultationCount: 1,
+          },
+        },
+      ]);
+
+      res.json({ topPatients });
     } catch (err) {
       res.status(500).json({ message: err.message });
     }

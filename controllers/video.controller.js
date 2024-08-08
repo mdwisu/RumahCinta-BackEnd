@@ -158,7 +158,7 @@ module.exports = {
     const { title, videoLink, description, author } = req.body;
     const videoId = req.params.id;
     const updatedBy = req.user._id;
-  
+
     // Buat objek updatedVideo tanpa videoId
     let updatedVideo = {
       title,
@@ -166,21 +166,21 @@ module.exports = {
       author,
       updatedBy,
     };
-  
+
     // Jika videoLink dikirim, tambahkan videoId ke updatedVideo
     if (videoLink) {
       const newVideoId = YouTubeVideoId(videoLink);
       updatedVideo.videoId = newVideoId;
     }
-  
+
     try {
       const video = await Video.findById(videoId);
       if (!video) {
         return res.status(404).json({ message: "Video not found." });
       }
-  
+
       await Video.findByIdAndUpdate(videoId, updatedVideo);
-  
+
       res.status(200).json({ message: "Video updated successfully." });
     } catch (error) {
       console.log(error);
@@ -261,5 +261,58 @@ module.exports = {
     res.status(200).json({
       message: "Data berhasil diupdate!",
     });
+  },
+  getVideoSummary: async (req, res) => {
+    try {
+      const videoCount = await Video.countDocuments();
+      const authorCount = await Video.distinct("author").countDocuments();
+
+      res.json({
+        videoCount,
+        authorCount,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getTopVideoAuthors: async (req, res) => {
+    try {
+      const topAuthors = await Video.aggregate([
+        { $group: { _id: "$author", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]);
+
+      res.json(topAuthors);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getVideoTrends: async (req, res) => {
+    try {
+      const trends = await Video.aggregate([
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+        { $limit: 12 },
+      ]);
+
+      res.json(trends);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getRecentVideos: async (req, res) => {
+    try {
+      const recentVideos = await Video.find().sort({ createdAt: -1 }).limit(5).select("title author createdAt");
+
+      res.json(recentVideos);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
   },
 };
