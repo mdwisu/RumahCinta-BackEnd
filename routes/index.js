@@ -12,7 +12,7 @@ const psikologRouter = require("./psikolog.router");
 const historyRouter = require("./histories.router");
 
 router.get("/", (req, res) => {
-  res.send("<h1></h1>Welcome To Mental Hack API</h1>");
+  res.send("<h1></h1>Welcome To Rumah Cinta API</h1>");
 });
 
 router.use("/auth", authRouter);
