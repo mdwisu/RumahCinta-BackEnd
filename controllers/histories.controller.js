@@ -301,4 +301,36 @@ module.exports = {
       res.status(500).json({ message: err.message });
     }
   },
+  getPatientConsultationData: async (req, res) => {
+    try {
+      const patientConsultationData = await History.aggregate([
+        {
+          $lookup: {
+            from: "users", // Mengambil data dari koleksi 'users'
+            localField: "patientUserId",
+            foreignField: "_id",
+            as: "patient",
+          },
+        },
+        { $unwind: "$patient" }, // Memecah array dari lookup
+        {
+          $group: {
+            _id: "$patient.name", // Mengelompokkan berdasarkan nama pasien
+            consultationCount: { $sum: 1 }, // Menghitung jumlah konsultasi
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            patientName: "$_id", // Nama pasien yang digabungkan
+            consultationCount: 1,
+          },
+        },
+      ]);
+
+      res.json(patientConsultationData);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
 };
